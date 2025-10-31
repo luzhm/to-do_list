@@ -32,19 +32,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tasks = [];
 
-  function renderTasks() {
-    tasksSection.innerHTML = '';
-    tasks.forEach(task => {
-      const taskDiv = document.createElement('div');
-      taskDiv.className = 'task';
+function renderTasks() {
+  tasksSection.innerHTML = '';
+  tasks.forEach(task => {
+    const taskDiv = document.createElement('div');
+    taskDiv.className = 'task';
 
-      const taskText = document.createElement('p');
-      taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
-      taskDiv.appendChild(taskText);
+    const taskText = document.createElement('p');
+    taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
+    taskDiv.appendChild(taskText);
 
-      tasksSection.appendChild(taskDiv);
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Удалить';
+    deleteBtn.addEventListener('click', () => {
+      const index = tasks.findIndex(t => t.id === task.id);
+      if (index > -1) {
+        tasks.splice(index, 1);
+        renderTasks();
+      }
     });
-  }
+    taskDiv.appendChild(deleteBtn);
+
+    tasksSection.appendChild(taskDiv);
+  });
+}
+
 
   form.addEventListener('submit', e => {
     e.preventDefault();
