@@ -33,13 +33,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const tasks = [];
 
 function renderTasks() {
-  tasksSection.innerHTML = '';
+  tasksSection.innerHTML = ''; // очистить список
   tasks.forEach(task => {
     const taskDiv = document.createElement('div');
     taskDiv.className = 'task';
 
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = task.done;
+    checkbox.addEventListener('change', () => {
+      task.done = checkbox.checked;
+      renderTasks();
+    });
+    taskDiv.appendChild(checkbox);
+
     const taskText = document.createElement('p');
     taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
+
+    if (task.done) {
+      taskText.style.textDecoration = 'line-through';
+      taskText.style.color = 'gray';
+    }
+
     taskDiv.appendChild(taskText);
 
     const deleteBtn = document.createElement('button');
@@ -56,6 +71,7 @@ function renderTasks() {
     tasksSection.appendChild(taskDiv);
   });
 }
+
 
 
   form.addEventListener('submit', e => {
