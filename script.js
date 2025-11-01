@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
   form.append(inputText, inputDate, addButton);
   main.appendChild(form);
 
+  const sortButton = document.createElement('button');
+  sortButton.textContent = 'Сортировать по дате';
+  sortButton.type = 'button';
+  main.appendChild(sortButton);
+
   const tasksSection = document.createElement('section');
   tasksSection.id = 'tasks-section';
   main.appendChild(tasksSection);
@@ -32,92 +37,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tasks = [];
 
-function renderTasks() {
-  tasksSection.innerHTML = '';
-  tasks.forEach(task => {
-    const taskDiv = document.createElement('div');
-    taskDiv.className = 'task';
+  function renderTasks() {
+    tasksSection.innerHTML = '';
+    tasks.forEach(task => {
+      const taskDiv = document.createElement('div');
+      taskDiv.className = 'task';
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = task.done;
-    checkbox.addEventListener('change', () => {
-      task.done = checkbox.checked;
-      renderTasks();
-    });
-    taskDiv.appendChild(checkbox);
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = task.done;
+      checkbox.addEventListener('change', () => {
+        task.done = checkbox.checked;
+        renderTasks();
+      });
+      taskDiv.appendChild(checkbox);
 
-    const taskContent = document.createElement('div');
+      const taskContent = document.createElement('div');
 
-    if (task.isEditing) {
-      const inputText = document.createElement('input');
-      inputText.type = 'text';
-      inputText.value = task.text;
+      if (task.isEditing) {
+        const inputTextEdit = document.createElement('input');
+        inputTextEdit.type = 'text';
+        inputTextEdit.value = task.text;
 
-      const inputDate = document.createElement('input');
-      inputDate.type = 'date';
-      inputDate.value = task.date;
+        const inputDateEdit = document.createElement('input');
+        inputDateEdit.type = 'date';
+        inputDateEdit.value = task.date;
 
-      taskContent.append(inputText, inputDate);
-      const saveBtn = document.createElement('button');
-      saveBtn.textContent = 'Сохранить';
-      saveBtn.addEventListener('click', () => {
-        const newText = inputText.value.trim();
-        const newDate = inputDate.value;
+        taskContent.append(inputTextEdit, inputDateEdit);
 
-        if (newText) {
-          task.text = newText;
-          task.date = newDate;
-          task.isEditing = false;
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Сохранить';
+        saveBtn.addEventListener('click', () => {
+          const newText = inputTextEdit.value.trim();
+          const newDate = inputDateEdit.value;
+
+          if (newText) {
+            task.text = newText;
+            task.date = newDate;
+            task.isEditing = false;
+            renderTasks();
+          } else {
+            alert('Задача не может быть пустой');
+          }
+        });
+        taskContent.appendChild(saveBtn);
+      } else {
+        const taskText = document.createElement('p');
+        taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
+        if (task.done) {
+          taskText.style.textDecoration = 'line-through';
+          taskText.style.color = 'gray';
+        }
+        taskContent.appendChild(taskText);
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Редактировать';
+        editBtn.addEventListener('click', () => {
+          task.isEditing = true;
           renderTasks();
-        } else {
-          alert('Задача не может быть пустой');
+        });
+        taskContent.appendChild(editBtn);
+      }
+
+      taskDiv.appendChild(taskContent);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Удалить';
+      deleteBtn.addEventListener('click', () => {
+        const index = tasks.findIndex(t => t.id === task.id);
+        if (index > -1) {
+          tasks.splice(index, 1);
+          renderTasks();
         }
       });
-      taskContent.appendChild(saveBtn);
+      taskDiv.appendChild(deleteBtn);
 
-    } else {
-      const taskText = document.createElement('p');
-      taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
-
-      if (task.done) {
-        taskText.style.textDecoration = 'line-through';
-        taskText.style.color = 'gray';
-      }
-
-      taskContent.appendChild(taskText);
-
-      const editBtn = document.createElement('button');
-      editBtn.textContent = 'Редактировать';
-      editBtn.addEventListener('click', () => {
-        task.isEditing = true;
-        renderTasks();
-      });
-      taskContent.appendChild(editBtn);
-    }
-
-    taskDiv.appendChild(taskContent);
-    const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Удалить';
-    deleteBtn.addEventListener('click', () => {
-      const index = tasks.findIndex(t => t.id === task.id);
-      if (index > -1) {
-        tasks.splice(index, 1);
-        renderTasks();
-      }
+      tasksSection.appendChild(taskDiv);
     });
-    taskDiv.appendChild(deleteBtn);
-
-    tasksSection.appendChild(taskDiv);
-  });
-}
-
-
-
+  }
 
   form.addEventListener('submit', e => {
     e.preventDefault();
-
     const text = inputText.value.trim();
     const date = inputDate.value;
 
@@ -128,11 +128,20 @@ function renderTasks() {
       text,
       date,
       done: false,
+      isEditing: false,
     };
 
     tasks.push(newTask);
     renderTasks();
-
     form.reset();
+  });
+
+  sortButton.addEventListener('click', () => {
+    tasks.sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(a.date) - new Date(b.date);
+    });
+    renderTasks();
   });
 });
