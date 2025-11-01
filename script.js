@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const tasks = [];
 
 function renderTasks() {
-  tasksSection.innerHTML = ''; // очистить список
+  tasksSection.innerHTML = '';
   tasks.forEach(task => {
     const taskDiv = document.createElement('div');
     taskDiv.className = 'task';
@@ -47,16 +47,56 @@ function renderTasks() {
     });
     taskDiv.appendChild(checkbox);
 
-    const taskText = document.createElement('p');
-    taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
+    const taskContent = document.createElement('div');
 
-    if (task.done) {
-      taskText.style.textDecoration = 'line-through';
-      taskText.style.color = 'gray';
+    if (task.isEditing) {
+      const inputText = document.createElement('input');
+      inputText.type = 'text';
+      inputText.value = task.text;
+
+      const inputDate = document.createElement('input');
+      inputDate.type = 'date';
+      inputDate.value = task.date;
+
+      taskContent.append(inputText, inputDate);
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Сохранить';
+      saveBtn.addEventListener('click', () => {
+        const newText = inputText.value.trim();
+        const newDate = inputDate.value;
+
+        if (newText) {
+          task.text = newText;
+          task.date = newDate;
+          task.isEditing = false;
+          renderTasks();
+        } else {
+          alert('Задача не может быть пустой');
+        }
+      });
+      taskContent.appendChild(saveBtn);
+
+    } else {
+      const taskText = document.createElement('p');
+      taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
+
+      if (task.done) {
+        taskText.style.textDecoration = 'line-through';
+        taskText.style.color = 'gray';
+      }
+
+      taskContent.appendChild(taskText);
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Редактировать';
+      editBtn.addEventListener('click', () => {
+        task.isEditing = true;
+        renderTasks();
+      });
+      taskContent.appendChild(editBtn);
     }
 
-    taskDiv.appendChild(taskText);
-
+    taskDiv.appendChild(taskContent);
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Удалить';
     deleteBtn.addEventListener('click', () => {
@@ -71,6 +111,7 @@ function renderTasks() {
     tasksSection.appendChild(taskDiv);
   });
 }
+
 
 
 
