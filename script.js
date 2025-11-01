@@ -69,6 +69,26 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentFilter = 'all';
   let currentSearch = '';
 
+  
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  function loadTasks() {
+    const saved = localStorage.getItem('tasks');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          tasks.length = 0;
+          parsed.forEach(task => tasks.push(task));
+        }
+      } catch (e) {
+        console.error('Ошибка при загрузке задач:', e);
+      }
+    }
+  }
+
   function renderTasks() {
     tasksSection.innerHTML = '';
 
@@ -100,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
       checkbox.checked = task.done;
       checkbox.addEventListener('change', () => {
         task.done = checkbox.checked;
+        saveTasks();
         renderTasks();
       });
       taskDiv.appendChild(checkbox);
@@ -128,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             task.text = newText;
             task.date = newDate;
             task.isEditing = false;
+            saveTasks();
             renderTasks();
           } else {
             alert('Задача не может быть пустой');
@@ -156,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const index = tasks.findIndex(t => t.id === task.id);
         if (index > -1) {
           tasks.splice(index, 1);
+          saveTasks();
           renderTasks();
         }
       });
@@ -181,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     form.reset();
+    saveTasks();
     renderTasks();
   });
 
@@ -190,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!b.date) return -1;
       return new Date(a.date) - new Date(b.date);
     });
+    saveTasks();
     renderTasks();
   });
 
@@ -203,5 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTasks();
   });
 
+  loadTasks();
   renderTasks();
 });
