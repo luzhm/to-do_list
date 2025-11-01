@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+
   const header = document.createElement('header');
   const title = document.createElement('h1');
   title.textContent = 'ToDo List';
@@ -24,6 +25,35 @@ document.addEventListener('DOMContentLoaded', () => {
   form.append(inputText, inputDate, addButton);
   main.appendChild(form);
 
+  const filterContainer = document.createElement('div');
+  filterContainer.id = 'filter-container';
+
+  const filterSelect = document.createElement('select');
+
+  const optionAll = document.createElement('option');
+  optionAll.value = 'all';
+  optionAll.textContent = 'Все';
+
+  const optionDone = document.createElement('option');
+  optionDone.value = 'done';
+  optionDone.textContent = 'Выполненные';
+
+  const optionNotDone = document.createElement('option');
+  optionNotDone.value = 'not_done';
+  optionNotDone.textContent = 'Невыполненные';
+
+  filterSelect.append(optionAll, optionDone, optionNotDone);
+
+  const filterCount = document.createElement('span');
+  filterCount.textContent = '(0)';
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.placeholder = 'Поиск задач...';
+
+  filterContainer.append(filterSelect, filterCount, searchInput);
+  main.appendChild(filterContainer);
+
   const sortButton = document.createElement('button');
   sortButton.textContent = 'Сортировать по дате';
   sortButton.type = 'button';
@@ -36,12 +66,34 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.append(header, main);
 
   const tasks = [];
+  let currentFilter = 'all';
+  let currentSearch = '';
 
   function renderTasks() {
     tasksSection.innerHTML = '';
-    tasks.forEach(task => {
+
+    let filteredTasks = tasks;
+
+    if (currentFilter === 'done') {
+      filteredTasks = tasks.filter(task => task.done);
+    } else if (currentFilter === 'not_done') {
+      filteredTasks = tasks.filter(task => !task.done);
+    }
+
+    if (currentSearch) {
+      filteredTasks = filteredTasks.filter(task =>
+        task.text.toLowerCase().includes(currentSearch)
+      );
+    }
+
+    filterCount.textContent = `(${filteredTasks.length})`;
+
+    filteredTasks.forEach(task => {
       const taskDiv = document.createElement('div');
       taskDiv.className = 'task';
+      if (task.done) {
+        taskDiv.classList.add('done');
+      }
 
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
@@ -53,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       taskDiv.appendChild(checkbox);
 
       const taskContent = document.createElement('div');
+      taskContent.style.flexGrow = '1';
 
       if (task.isEditing) {
         const inputTextEdit = document.createElement('input');
@@ -84,10 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         const taskText = document.createElement('p');
         taskText.textContent = task.text + (task.date ? ` (до ${task.date})` : '');
-        if (task.done) {
-          taskText.style.textDecoration = 'line-through';
-          taskText.style.color = 'gray';
-        }
         taskContent.appendChild(taskText);
 
         const editBtn = document.createElement('button');
@@ -123,17 +172,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!text) return;
 
-    const newTask = {
+    tasks.push({
       id: Date.now(),
       text,
       date,
       done: false,
       isEditing: false,
-    };
+    });
 
-    tasks.push(newTask);
-    renderTasks();
     form.reset();
+    renderTasks();
   });
 
   sortButton.addEventListener('click', () => {
@@ -144,4 +192,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     renderTasks();
   });
+
+  filterSelect.addEventListener('change', () => {
+    currentFilter = filterSelect.value;
+    renderTasks();
+  });
+
+  searchInput.addEventListener('input', () => {
+    currentSearch = searchInput.value.trim().toLowerCase();
+    renderTasks();
+  });
+
+  renderTasks();
 });
